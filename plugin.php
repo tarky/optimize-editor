@@ -1,12 +1,12 @@
 <?php
 /*
-Plugin Name: Jin blog card by name
+Plugin Name: Optimize editor
 Author: webfood
 Plugin URI: http://webfood.info/
-Description: Jin blog card by name
+Description: Optimize editor
 Version: 0.1
 Author URI: http://webfood.info/
-Text Domain: Jin blog card by name
+Text Domain: Optimize editor
 Domain Path: /languages
 
 License:
@@ -30,44 +30,27 @@ License:
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
-function to_blog_card($the_content) {
-	if ( is_singular() || is_category() || is_front_page() ) {
+add_filter( 'post_thumbnail_html', 'remove_width_attribute', 10 );
+add_filter( 'image_send_to_editor', 'remove_width_attribute', 10 );
 
-
-  $res = preg_match_all("/\[card name=.*\]/" , $the_content, $m);
-		foreach ($m[0] as $match) {
-			$temp = '';
-      $temp = preg_replace("/^\[card name=/", "" , $match);
-			$temp = preg_replace("/\]$/", "" , $temp);
-			$temp = str_replace('"', '', $temp);
-			$url = '/'.$temp.'/';
-			$id = url_to_postid( $url );
-			if ( ! $id ) continue;//IDを取得できない場合はループを飛ばす
-				$post = get_post($id);
-				$title = $post->post_title;
-				if( ! get_post_meta($post->ID, 'post_desc',true) == null ){
-					$excerpt = get_post_meta($post->ID, 'post_desc',true);
-				}else{
-					$excerpt = cps_excerpt($post->post_content,68);
-				}
-				$logo = esc_url( get_site_icon_url( 32 ) ) ;
-				$sitetitle = get_bloginfo('name');
-				$thumbnail = get_the_post_thumbnail($id, 'cps_thumbnails', array('class' => 'blog-card-thumb-image'));
-				if ( !$thumbnail ) {
-					$thumbnail = '<img src="'.get_template_directory_uri().'/img/noimg320.png" />';
-				}
-
-			$tag = '<a href="'.$url.'" class="blog-card"><div class="blog-card-hl-box"><i class="jic jin-ifont-post"></i><span class="blog-card-hl"></span></div><div class="blog-card-box"><div class="blog-card-thumbnail">'.$thumbnail.'</div><div class="blog-card-content"><span class="blog-card-title">'.$title.'</span><span class="blog-card-excerpt">'.$excerpt.'...</span></div></div></a>';
-
-      $the_content = str_replace('<p>'.$match.'</p>', $tag , $the_content);
-
-		}
-	}
-	return $the_content;
+function remove_width_attribute( $html ) {
+$html = preg_replace( '/(width|height)="\d*"\s/', "", $html );
+return $html;
 }
 
-add_filter('the_content','to_blog_card');
+// メディア追加時のwidth/height自動追加を削除
+function my_remove_width_attribute( $options ) {
+    if ( $options['tinymce'] ) {
+        wp_enqueue_script( 'remove_width_attribute', get_stylesheet_directory_uri() . '/js/remove_width_attribute.js', array( 'jquery' ), '1.0.0', true);
+    }
+}
+add_action( 'wp_enqueue_editor', 'my_remove_width_attribute', 10, 1 );
 
-add_action('after_setup_theme',function(){
-  remove_filter('the_content','url_to_blog_card');
-});
+function disable_correct_url() {
+	echo <<< EOM
+<script>
+	window.wpLink.correctURL= function () {};
+</script>
+EOM;
+}
+add_action('admin_print_footer_scripts', 'disable_correct_url');
