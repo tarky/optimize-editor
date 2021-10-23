@@ -30,7 +30,10 @@ License:
     Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+//いつ効いてるのかわからない
 add_filter( 'post_thumbnail_html', 'remove_width_attribute', 10 );
+
+//挿入時に効いてる
 add_filter( 'image_send_to_editor', 'remove_width_attribute', 10 );
 
 function remove_width_attribute( $html ) {
@@ -39,13 +42,16 @@ return $html;
 }
 
 // メディア追加時のwidth/height自動追加を削除
+//画像の置換の時効いてた
 function my_remove_width_attribute( $options ) {
     if ( $options['tinymce'] ) {
-        wp_enqueue_script( 'remove_width_attribute', get_stylesheet_directory_uri() . '/js/remove_width_attribute.js', array( 'jquery' ), '1.0.0', true);
+       $path = str_replace(site_url(),'',plugin_dir_url( __FILE__ ));
+        wp_enqueue_script( 'remove_width_attribute', $path . 'remove_width_attribute.js', array( 'jquery' ), '1.0.0', true);
     }
 }
 add_action( 'wp_enqueue_editor', 'my_remove_width_attribute', 10, 1 );
 
+//[sc name=hapitas]とかをURLにするときに、httpとか挿入されちゃうのを防ぐ
 function disable_correct_url() {
 	echo <<< EOM
 <script>
