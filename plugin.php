@@ -60,3 +60,19 @@ function disable_correct_url() {
 EOM;
 }
 add_action('admin_print_footer_scripts', 'disable_correct_url');
+
+//テーブル挿入時にwidth heigt挿入しないのと、テーブルをドラッグでサイズ変えられないようにする
+function tinymce_custom($settings) {
+
+    $invalid_style = array(
+        'table' => 'width height',
+        'th' => 'width height',
+        'td' => 'width height'
+    );
+    $settings['invalid_styles'] = json_encode($invalid_style);
+    $settings['table_resize_bars'] = false;
+    $settings['object_resizing'] = "img";
+
+    return $settings;
+}
+add_filter('tiny_mce_before_init', 'tinymce_custom', 0);
